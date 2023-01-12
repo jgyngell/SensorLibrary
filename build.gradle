@@ -1,0 +1,112 @@
+import java.text.SimpleDateFormat
+
+plugins {
+    id 'com.github.johnrengelman.shadow' version '7.1.0'
+    id 'java'
+}
+
+group = "org.redstonechips"
+
+static def getTime() {
+    SimpleDateFormat sdf = new SimpleDateFormat("yyMMdd-HHmm")
+    sdf.setTimeZone(TimeZone.getTimeZone("UTC"))
+    return sdf.format(new Date()).toString()
+}
+
+// Load version from string
+String shortVersion = null
+try {
+    shortVersion = rootProject.file('version.txt').getText('UTF-8').trim()
+} catch (FileNotFoundException ignored) {
+}
+
+// If no version file found or was empty, use blank string
+if (shortVersion == null || shortVersion == "") {
+    shortVersion = getTime()
+}
+
+// Set version to version property if supplied
+if (hasProperty('ver')) {
+    if (ver.charAt(0) == "v") {
+        shortVersion = ver.substring(1)
+    } else {
+        shortVersion = ver
+    }
+}
+
+// Add snapshot identifier to version
+version = shortVersion + "-SNAPSHOT"
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_16
+    targetCompatibility = JavaVersion.VERSION_16
+}
+
+repositories {
+    mavenCentral {
+        content {
+            excludeModule("com.destroystokyo.paper", "paper-api")
+            excludeModule("io.papermc", "paperlib")
+        }
+    }
+
+    maven {
+        name 'papermc'
+        url 'https://papermc.io/repo/repository/maven-public/'
+        content {
+            excludeModule("org.junit.jupiter", "junit-jupiter-api")
+            excludeModule("org.junit.jupiter", "junit-jupiter-engine")
+        }
+    }
+}
+
+dependencies {
+    compileOnly 'io.papermc.paper:paper-api:1.17.1-R0.1-SNAPSHOT'
+    compileOnly files('libs/RedstoneChips.jar')
+    implementation 'io.papermc:paperlib:1.0.6'
+    testImplementation 'io.papermc.paper:paper-api:1.17.1-R0.1-SNAPSHOT'
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.1'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.8.1'
+}
+
+test {
+    useJUnitPlatform()
+}
+
+processResources {
+    filesMatching("**/plugin.yml") {
+        expand ( NAME: rootProject.name, VERSION: version, PACKAGE: project.group.toString() )
+    }
+}
+
+shadowJar {
+    archiveClassifier.set('')
+    relocate 'io.papermc.lib', 'shadow.io.papermc.paperlib'
+    minimize()
+}
+
+// Disable jar and replace with shadowJar
+jar.enabled = false
+assemble.dependsOn(shadowJar)
+
+task configureRelease {
+    doLast {
+        // Trim the "-SNAPSHOT" extension from version
+        version = shortVersion
+    }
+}
+
+// Make sure configuration runs in the correct order
+build.mustRunAfter(configureRelease)
+
+task release {
+    dependsOn build
+    dependsOn configureRelease
+
+    doLast {
+        // Rename final JAR to trim off version information
+        shadowJar.archiveFile.get().getAsFile()
+                .renameTo(buildDir.toString() + File.separator + 'libs' + File.separator
+                        + rootProject.name + '.jar')
+    }
+}

@@ -1,7 +1,7 @@
 SensorLibrary
 =============
 
-a [RedstoneChips](http://eisental.github.com/RedstoneChips) circuit library containing sensor chips.
+a [RedstoneChips](http://github.com/jgyngell/RedstoneChips) circuit library containing sensor chips.
 
 #### Circuits in library
 - pirsensor - a PIR (Passive Infra-red) heat sensor for detecting living entities within a radius.
@@ -18,11 +18,16 @@ __For much more information, see the [circuitdocs](http://eisental.github.com/Re
 
 Installation
 -------------
-* Download the latest RedstoneChips bundle [RedstoneChips](http://eisental.github.com/RedstoneChips).
+* Download the latest RedstoneChips bundle [RedstoneChips](http://github.com/jgyngell/RedstoneChips).
 * Copy all jar files into the plugins folder of your craftbukkit installation.
 
 Changelog
 ---------
+
+#### SensorLibrary 0.35
+- Updated to work with Spigot / PaperMC 1.17+
+- Changed to Gradle build system
+
 #### SensorLibrary 0.34
 - __daytime__: Fixed daytime offset bug.
 
